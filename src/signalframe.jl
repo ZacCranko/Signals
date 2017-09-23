@@ -24,6 +24,7 @@ end
 for f in (:getindex, :next, :done)
     @eval $f(fr::SignalFrame, i::Int) = $f(fr.frame, i::Int)
 end
+getindex(fr::SignalFrame, iter) = SignalFrame(fr.frame[iter]...)
 
 # unary operators
 for op in (:-, :abs, :sqrt, :log, :sum)

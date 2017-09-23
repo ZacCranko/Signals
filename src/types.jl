@@ -29,6 +29,7 @@ struct SubSignal{NCh,T,SR} <: AbstractSignal{NCh,T,SR}
     SubSignal{NCh,T,SR}(start::Int, data::AbstractVector{SignalFrame{NCh,T}}) where {NCh,T,SR} = new{NCh,T,Quantity{Float64}(kHz(isa(SR, Quantity) ? SR : SR*Hz))}(start, data)
 end
 
+
 struct TimeRange
     start::Time
     stop::Time

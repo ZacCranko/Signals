@@ -72,8 +72,8 @@ function convert(::Type{Signal{NCh,T}}, ss::Signal{NCh,U}) where {NCh,T,U}
 end
 
 function demux(ss::Signal{NCh,T,SR}, chs) where {NCh,T,SR}
+    maximum(chs) <= NCh || throw(BoundsError())
     NChOut = length(chs)
-    NChOut <= NCh || throw(BoundsError())
     demuxed = Signal{NChOut,T,SR}(nframes(ss))
     for t in 1:nframes(ss)
         @inbounds demuxed[t] = ss[t][chs]
