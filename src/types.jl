@@ -18,7 +18,7 @@ bitdepth(ss::AbstractSignal{NCh,T,SR})   where {NCh,T,SR} = T
 samplerate(ss::AbstractSignal{NCh,T,SR}) where {NCh,T,SR} = SR
 
 struct Signal{NCh,T,SR} <: AbstractSignal{NCh,T,SR}
-    data::AbstractVector{SignalFrame{NT}}
+    data::AbstractVector{SignalFrame{T}}
 
     @inline function Signal{NCh,T,SR}(data::AbstractVector{SignalFrame{NCh,T}}) where {NCh,T,SR} 
         return new{NCh,T,Quantity{Float64}(kHz(isa(SR, Quantity) ? SR : SR*Hz))}(data)
