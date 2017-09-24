@@ -7,8 +7,7 @@ function peak(ss::Signal)
 end
 
 function generate_sine(dur::Time, freq::Frequency; sr::Frequency = 44.1kHz)
-    T = Float32
-    sig   = Signal{1,T,sr}(time2frame(sr, dur))
+    sig   = Signal{1,Float32,sr}(time2frame(sr, dur))
     coeff = Float64(freq * 2pi / sr)
     for i in 1:nframes(sig)
         j = i-1

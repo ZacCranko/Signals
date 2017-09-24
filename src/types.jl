@@ -1,12 +1,17 @@
 # Sample frames
-struct SignalFrame{NCh, T<:Real}
-    frame::NTuple{NCh, T}
+struct SignalFrame{NCh,T<:Real}
+    frame::NTuple{NCh,T}
 
     SignalFrame{NCh,T}(frame::NTuple{NCh,T}) where {NCh,T} = new(frame)
 end
-SignalFrame{NCh,T}(args::Vararg{<:Real,NCh}) where {NCh,T} = SignalFrame{NCh,T}(NTuple{NCh,T}((args)))
-SignalFrame(args::Vararg{T,NCh})       where {NCh,T<:Real} = SignalFrame{NCh,T}(NTuple{NCh,T}((args)))
-SignalFrame(tup::NTuple{NCh,T})        where {NCh,T}       = SignalFrame{NCh,T}(tup)
+
+# type inferred
+SignalFrame(frame::NTuple{NCh,T})  where {NCh,T<:Real} = SignalFrame{NCh,T}(frame)
+SignalFrame(frame::Real...)  = SignalFrame(frame)
+
+# type enforced
+SignalFrame{NCh}(frame::Vararg{T,NCh})   where {NCh, T<:Real} = SignalFrame{NCh,T}(frame)
+SignalFrame{NCh,T}(frame::Vararg{<:Real,NCh})  where {NCh, T} = SignalFrame{NCh,T}(frame)
 
 # Signals
 abstract type AbstractSignal{NCh,T,SR} end
@@ -18,11 +23,9 @@ bitdepth(ss::AbstractSignal{NCh,T,SR})   where {NCh,T,SR} = T
 samplerate(ss::AbstractSignal{NCh,T,SR}) where {NCh,T,SR} = SR
 
 struct Signal{NCh,T,SR} <: AbstractSignal{NCh,T,SR}
-    data::AbstractVector{SignalFrame{T}}
+    data::AbstractVector{SignalFrame{NCh,T}}
 
-    @inline function Signal{NCh,T,SR}(data::AbstractVector{SignalFrame{NCh,T}}) where {NCh,T,SR} 
-        return new{NCh,T,Quantity{Float64}(kHz(isa(SR, Quantity) ? SR : SR*Hz))}(data)
-    end
+    Signal{NCh,T,SR}(data::AbstractVector{SignalFrame{NCh,T}}) where {NCh,T,SR} = new{NCh,T, Quantity{Float64}(kHz(isa(SR, Quantity) ? SR : SR*Hz))}(data)
 end
 
 Signal{NCh,T,SR}(n::Int) where {NCh,T,SR} = Signal{NCh,T,SR}(Vector{SignalFrame{NCh,T}}(n))
@@ -32,9 +35,7 @@ struct SubSignal{NCh,T,SR} <: AbstractSignal{NCh,T,SR}
     start::Int
     data::AbstractVector{SignalFrame{NCh,T}}
 
-    @inline function SubSignal{NCh,T,SR}(start::Int, data::AbstractVector{SignalFrame{NCh,T}}) where {NCh,T,SR} 
-        return new{NCh,T,Quantity{Float64}(kHz(isa(SR, Quantity) ? SR : SR*Hz))}(start, data)
-    end
+    SubSignal{NCh,T,SR}(start::Int, data::AbstractVector{SignalFrame{NCh,T}}) where {NCh,T,SR} = new{NCh,T, Quantity{Float64}(kHz(isa(SR, Quantity) ? SR : SR*Hz))}(start, data)
 end
 
 # Time-based indexing helpers

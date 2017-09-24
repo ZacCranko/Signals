@@ -1,8 +1,6 @@
 module Signals
-using FixedPointNumbers, Unitful
-import LibSndFile, SampledSignals
 
-# signal frames
+import LibSndFile, SampledSignals
 import Base: convert, show, copy,
     # array functions
     done, length, size, start, endof, next, first, last, colon,
@@ -11,7 +9,9 @@ import Base: convert, show, copy,
     zero, one, +, -, *, /, abs, sqrt, log, sum, max, min, maxabs
 
 import SampledSignals: samplerate, nframes
-import Unitful: Time, Frequency
+
+using Unitful
+import Unitful: Time, Frequency, Quantity
 
 @unit kHz "kHz" KiloHertz 1000/u"s" true
 const Hz     = u"Hz"   
@@ -47,9 +47,13 @@ export
     # unitful
     Time, Frequency, hr, minute, s, ms, μs, MHz, kHz, Hz,
     # types
-    AbstractSignal, Signal, SignalFrame,
+    SignalFrame, AbstractSignal, MonoSignal, Signal, SubSignal,
+    # common methods
     nchannels, bitdepth, samplerate, nframes, duration, 
+
     demux, absmax, absmin, window, load,
+    
     # dsp
     peak, generate_sine
+
 end # module
