@@ -49,7 +49,7 @@ export
     # types
     AbstractSignal, Signal, SignalFrame,
     nchannels, bitdepth, samplerate, nframes, duration, 
-    demux, splmax, splmin, window, load,
+    demux, absmax, absmin, window, load,
     # dsp
     peak, generate_sine
 end # module

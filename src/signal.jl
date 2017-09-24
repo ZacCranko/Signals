@@ -13,7 +13,7 @@ function show(io::IO, ss::AbstractSignal; blocks = displaysize()[2] - 2)
     if nframes(ss) > 0
         if isa(ss, SubSignal)
             stime = duration(ss, ss.start)
-            etime  = stime + duration(ss)
+            etime  = stime + t
             first_str = @sprintf "(%0.2f %s)" ustrip(stime) unit(stime)
             last_str  = @sprintf "(%0.2f %s)" ustrip(etime) unit(etime)
             println(io, rpad(first_str, displaysize()[2] - length(last_str)), last_str)
@@ -25,11 +25,6 @@ function show(io::IO, ss::AbstractSignal; blocks = displaysize()[2] - 2)
         end
     end
 end
-
-time2frame(sr::Frequency,      t::Time) = trunc(Int, sr*t) + 1
-time2frame(ss::AbstractSignal, t::Time) = time2frame(samplerate(ss), t) 
-time2frame(ss::AbstractSignal, t::TimeRange) = colon(time2frame(ss, first(t), last(t))...)
-time2frame(ss::AbstractSignal, varg::Vararg{Time, N}) where N = map(t->time2frame(ss,t), varg)
 
 copy(ss::Signal{NCh,T,SR})    where {NCh,T,SR} = Signal{NCh,T,SR}(copy(ss.data))
 view(ss::Signal{NCh,T,SR}, i) where {NCh,T,SR} = SubSignal{NCh,T,SR}(first(i), view(ss.data, i))
@@ -51,10 +46,10 @@ end
 end
 
 getindex(ss::AbstractSignal, t::Time)              = getindex(ss, time2frame(ss, t))
-getindex(ss::AbstractSignal, r::TimeRange)         = getindex(ss, colon(time2frame(ss, first(r), last(r))...))
+getindex(ss::AbstractSignal, r::TimeRange)         = getindex(ss, time2frame(ss, r))
 setindex!(ss::AbstractSignal, value, key...)       = setindex!(ss.data, value, key...)
 setindex!(ss::AbstractSignal, value, t::Time)      = setindex!(ss.data, value, time2frame(ss, t))
-setindex!(ss::AbstractSignal, value, r::TimeRange) = setindex!(ss, value, colon(time2frame(ss, first(r), last(r))...))
+setindex!(ss::AbstractSignal, value, r::TimeRange) = setindex!(ss.data, value, time2frame(ss, r))
 
 function convert(::Type{Signal}, buf::SampledSignals.SampleBuf{T}) where T
     n, NCh = size(buf)

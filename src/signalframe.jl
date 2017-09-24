@@ -14,9 +14,9 @@ end
 # hack to make certain things work with fixed precision numbers for ::FP / ::Int
 # Base.promote_type(::Type{<:FixedPointNumbers.FixedPoint}, ::Type{<:Integer}) = Float32
 
-zero(::Type{SignalFrame{NCh, T}}) where {NCh,T} = SignalFrame{NCh, T}(ntuple(i->zero(T), NCh))
+zero(::Type{SignalFrame{NCh, T}}) where {NCh,T} = SignalFrame{NCh, T}(ntuple(_->zero(T), NCh))
 zero(::SignalFrame{NCh, T})       where {NCh,T} = zero(SignalFrame{NCh, T})
-one(::Type{SignalFrame{NCh, T}})  where {NCh,T} = SignalFrame{NCh, T}(ntuple(i->one(T), NCh))
+one(::Type{SignalFrame{NCh, T}})  where {NCh,T} = SignalFrame{NCh, T}(ntuple(_->one(T), NCh))
 one(::SignalFrame{NCh, T})        where {NCh,T} = one(SignalFrame{NCh, T})
 for f in (:length, :size, :start, :endof)
     @eval $f(fr::SignalFrame) = $f(fr.frame)
@@ -38,19 +38,20 @@ for op in (:*, :/)
     @eval ($op)(x::T, fr::SignalFrame) where {T<:Real} = ($op)(fr, x)
 end
 # — associative
-splmax(a::Real, b::Real) = abs(a) >= abs(b) ? a : b
-splmin(a::Real, b::Real) = abs(a) >= abs(b) ? b : a
+absmax(a::Real, b::Real) = abs(a) >= abs(b) ? a : b
+absmin(a::Real, b::Real) = abs(a) >= abs(b) ? b : a
 
-for op in (:+, :-, :max, :min, :splmax, :splmin)
+for op in (:+, :-, :max, :min, :absmax, :absmin)
     @eval ($op)(fr1::SignalFrame{NCh,T}, fr2::SignalFrame{NCh,T}) where {NCh,T} = SignalFrame(map($op, fr1.frame, fr2.frame))
 end
 
-convert(::Type{SignalFrame{1,T}},     r::Real)               where T         = SignalFrame{1,  T}(Tuple{T}(r))
+convert(::Type{SignalFrame{1,T}},   r::Real)                 where T         = SignalFrame{1,  T}(Tuple{T}(r))
 convert(::Type{SignalFrame{NCh,T}}, tup::NTuple{NCh,<:Real}) where {NCh,T}   = SignalFrame{NCh,T}(convert(NTuple{NCh,T}, tup))
 convert(::Type{SignalFrame{NCh,T}}, vec::Vector{<:Real})     where {NCh,T}   = convert(SignalFrame{NCh,T}, (vec...))
 convert(::Type{SignalFrame{NCh,T}}, fr::SignalFrame{NCh,U})  where {NCh,T,U} = SignalFrame{NCh,T}(convert(NTuple{NCh,T}, fr.frame))
-convert(::Type{SignalFrame{1,T}},   fr::SignalFrame{2,T})    where {T}       = SignalFrame{NCh,T}(fr[1]/2 + fr[2]/2)
-convert(::Type{SignalFrame{NCh,T}}, fr::SignalFrame{1,T})    where {NCh, T}  = SignalFrame{NCh,T}(ntuple(i->fr[1], NCh))
+
+convert(::Type{SignalFrame{1,T}},   fr::SignalFrame{2,T})    where T         = SignalFrame{NCh,T}(0.7079457843841379*fr[1] + 0.7079457843841379*fr[2])
+convert(::Type{SignalFrame{NCh,T}}, fr::SignalFrame{1,T})    where {NCh, T}  = SignalFrame{NCh,T}(ntuple(_->fr[1], NCh))
 
 # should eventually replace this construction with a generated function so that branching is not required at runtime
 @inline function convert(::Type{SignalFrame{NChOut,TOut}}, fr::SignalFrame{NChIn,TIn}) where {NChOut,TOut, NChIn,TIn}
